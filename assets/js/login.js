@@ -51,19 +51,40 @@ $(function(){
     // 阻止默认的提交行为
     e.preventDefault();
     data = $(this).serialize()
-    $.post("/api/login", 
-    // 快速获取表单数据
-    data,
-    function(res){
-      if(res.status !== 0){
-        return layer.msg(res.message);
+
+    $.ajax(
+      {
+        method: "post",
+        url:"/api/login",
+        data: data,
+        success: function(res){
+          if(res.status !== 0){
+            return layer.msg(res.message);
+          }
+          layer.msg('登入成功');
+          //将登入成功获得的token值，保存在localStorage中
+          localStorage.setItem('token',res.token)
+          console.log(res.token)
+          // 跳转到主页
+          // location.href = '/index.html'
+        }
       }
-      layer.msg('登入成功');
-      //将登入成功获得的token值，保存在localStorage中
-      localStorage.setItem('token',res.token)
-      // 跳转到主页
-      location.href = '/index.html'
-    })
+    )
+
+    // $.post("/api/login", 
+    // // 快速获取表单数据
+    // data,
+    // function(res){
+    //   if(res.status !== 0){
+    //     return layer.msg(res.message);
+    //   }
+    //   layer.msg('登入成功');
+    //   //将登入成功获得的token值，保存在localStorage中
+    //   localStorage.setItem('token',res.token)
+    //   console.log(res.token)
+    //   // 跳转到主页
+    //   location.href = '/index.html'
+    // })
   })
 
 
