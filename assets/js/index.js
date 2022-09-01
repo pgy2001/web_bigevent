@@ -12,9 +12,11 @@ $(function(){
     });
   })
 })
+//$(function(){})入口函数
+// 意思是：一旦dom结构渲染完毕即可执行内部代码。jQuery入口函数可以书写多次
 
 var layer = layui.layer
- 
+// 为了拿到跟路径，还要在index.html中导入baseAPI.js文件
 function getUserInfo(){
   $.ajax(
     {

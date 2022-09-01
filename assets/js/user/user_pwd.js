@@ -26,7 +26,7 @@ $(function() {
           return layui.layer.msg('更新密码失败！')
         }
         layui.layer.msg('更新密码成功！')
-        // 重置表单
+        // 重置表单reset()只有dom对象可以使用，[0]可以将jquery对象转为dom对象
         $('.layui-form')[0].reset()
       }
     })

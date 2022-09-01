@@ -1,0 +1,267 @@
+bs 
+名称：大事件项目 
+练习：html+css+ajax+nodejs+git
+用户名：pgy,pgy2001
+密码：1234567
+
+
+1，项目结构：
+aseets:前端要用到的静态文件 ，lib:第三方插件
+home,urser:项目的两个大模块
+login.html:登入页面
+index.html:登入首页
+
+2，使用Github管理
+	a, 在该项目文件下打开终端 执行：git init
+	b, git add. 将项目所有文件添加至暂存区
+	c, git commit -m "init project" 提交
+	d, 提交至 Github仓库，打开Github账户，新建仓库， 然后复制命令，终端执行
+	e, git checkout -b login 创建新分支
+		（创建后就处于这个分支，可以用git branch查询当前所处分支）
+
+3, 安装visiocode插进：Live Server 
+作用：打开html文件用遵循http协议的格式，而不是磁盘格式
+用法：右击html文件，选择Open with Live Serve
+
+4，login页面
+	a,使用layui
+   	<link rel="stylesheet" href="assets/lib/layui/css/layui.css"> 
+	b, logo位置可使用layui中的页面元素（就是页面元素怎么摆放，如居中）快速绘制
+	c, 登入框水平居中：
+		position: absolute;
+  		left: 50%;
+  		top: 50%;
+ 		transform: translate(-50%, -50%);
+		绝对定位abosolute，相对于第一个非 static 定位的父级元素进行定位，
+		可以通过 top、right、bottom、left 这 4 个属性来设置元素相对于父级
+		元素位置的偏移量。如果没有满足条件的父级元素，
+		则会相对于浏览器窗口来进行定位。
+		使用绝对定位的元素不会对其它元素造成影响。即其脱离文档流
+		相对定位：相对自己原来的位置定位，占据原来的空间
+	d, 登入与注册的按需切换：
+    		<script src="assets/lib/jquery.js"></script>
+    		<script src="assets/js/login.js"></script>
+		注意导入顺序
+		login.js：
+		$(function(){
+  		      $(".login a").click(function(){
+   			 $(".login").hide();
+    			$(".register").show();
+  		});
+
+  		      $(".register a").click(function(){
+   		 	$(".register").hide();
+    			$(".login").show();
+  		})
+	e, 提交按钮有lay-submit属性，class="layui-form-item"独占一行
+	f, 布局的时候巧用flex（让“去注册账户靠右”）
+		例如想让元素靠右，除了浮动还可以：
+		display:flex;
+		justify-content: flex-end;
+	g, 图标的定位可以用子绝父相（用户和密码图标）
+	h, 为表单添加验证规则 （login.js）
+		使用layui的校验：
+		 <script src="assets/lib/layui/layui.all.js"></script>
+		在提交之前对表单验证，只有验证通过才会真正提交
+		layui内置模块-->表单-->表单验证
+		只需要在表单元素上加上 lay-verify="" 属性值即可
+		// 从layui中获取form对象
+  		var form = layui.form;
+ 		 form.verify({
+    			//数组的两个值分别代表：[正则匹配、匹配不符时的提示文字]
+   			 pwd: [
+      				/^[\S]{6,12}$/
+     				,'密码必须6到12位，且不能出现空格'
+    			] ,
+			//校验两次密码是否一致
+   			 repwd: function(value){
+     				 var pwd = $('.register [name=password]').val()
+     				 if(value != pwd ){
+        					return'两次密码不一致'
+      				}
+    			}
+  		});     
+	g, 监听注册表单的提交事件（login.js）
+		// 从layui中获取layer对象,layui-->内置模块-->弹出层
+		 var layer = layui.layer;
+		$("#form_reg").on('submit',function(e){
+    			// 阻止默认的提交行为
+    			e.preventDefault();
+    			var data = {username:$('.register [name=username]').val(),
+    			password:$('.register [name=password]').val()}
+    			// 注意这里并不是完整地址，完整地址在baseAPI.js中进行拼接，用到了jqury内置方法，详见baseAPI.js
+    			$.post("/api/reguser", data,
+    			function(res){
+      				if(res.status !== 0){
+        					return layer.msg(res.message);
+     			}
+      			layer.msg('注册成功');
+      			// 模拟点击事件，跳转到登入页面
+      			$("#a_log").click()
+    			})
+  		})
+	h, 监听登入行为（login.js）
+ 		 $("#form_log").on('submit',function(e){
+    			// 阻止默认的提交行为
+   			 e.preventDefault();
+   			 data = $(this).serialize()
+
+    			$.ajax(
+      				{
+        				method: "post",
+        				url:"/api/login",
+        				data: data,
+        				success: function(res){
+         					 if(res.status !== 0){
+           						return layer.msg(res.message);
+         					 }
+          				layer.msg('登入成功');
+          				//将登入成功获得的token值，保存在localStorage中
+          				localStorage.setItem('token',res.token)
+          				console.log(res.token)
+				//可以注释 location.href = '/index.html'，看到
+          				// 跳转到主页
+         				 location.href = '/index.html'
+        				}
+     			 }
+    		)
+	  拿到token值，访问有权限的网页，需要登入验证，即看你有无token值
+	
+	i, 统一拼接请求的根路径 baseAPI.js
+		  options.url = 'http://www.liulongbin.top:3007' + options.url
+
+
+	j, 提交login分支的代码到Github
+		git add .
+		git commit -m "完成了登入注册功能"
+		git push -u origin login  login分支上传到云端
+		git checkout master
+		git branch
+		git merge login 合并login分支
+		git push 上传到云端
+		git checkout -b index 新建分支
+
+5， 后台主页
+	a, layui布局（记得导入layuicss和js）
+	b,layui导航的lay-shrink属性 展开子菜单时 收缩全部兄弟菜单子菜单
+	c, iframe
+	  	<!-- iframe里的src可以决定初始化的时候的页面，但可以通过a标签修改 -->
+                	<iframe src="home/dashboard.html" name="fm" frameborder="0"></iframe>
+		<a href="user/user_info.html" target="fm"> </a>
+	d, layui-this加在导航栏首页那里，打开默认选中
+
+	e, 渲染文字头像和图片头像
+		发ajax请求，如果有图片，则渲染图片，无则，渲染文字图片
+		具体看index.js
+		//$(function(){})入口函数
+		       意思是：一旦dom结构渲染完毕即可执行内部代码。
+		       jQuery入口函数可以书写多次
+		// 为了拿到根路径，还要在index.html中导入baseAPI.js文件
+	   	         否则ajax请求失败
+		// 因为该网页只有登入后才能访问，所以发起ajax请求的时候，请求头中
+			要加上token
+		 		headers:{
+     				Authorization:localStorage.getItem("token") || ''},
+			由于有权限的网页很多，重复写很麻烦，于是将其写进baseApi.js中
+			判断url中是否有/my(/my为有权限的接口)，有则在请求头中加token
+	f, 退出功能（index.js）
+		layui弹出层 confirm 询问框
+			 $("#btnLogout").on('click',function(){
+    				layer.confirm('确定要退出吗?', {icon: 3, title:'提示'}, 
+    				// 此处的函数是点击确定后触发的
+   				 function(index){
+      				localStorage.removeItem('token');
+      				location.href ='login.html';
+      
+      				layer.close(index);
+   			 });
+		退出后销毁token，并返回login页面
+	g, 控制用户访问权限，没登入不允许访问后台主页
+		baseAPI.js
+ 			// 全局统一挂载 complete 回调函数
+			//无论成功失败都会调用complete
+  			options.complete = function (res) {
+    			// console.log('执行了 complete 回调：')
+    			// console.log(res)
+    			// 在 complete 回调函数中，可以使用 res.responseJSON 拿到服务器响应回来的数据
+    			if (res.responseJSON.status === 1 && res.responseJSON.message === '身份认证失败！') {
+      			// 1. 强制清空 token
+      			localStorage.removeItem('token')
+      			// 2. 强制跳转到登录页面
+     			 location.href = '/login.html'
+   			 }
+  			}
+		与前面的访问有权限的接口需要在请求头中发送token，联系起来看
+	h, Github提交代码
+		.......
+		创建新分支 user
+6 基本资料
+	a, layui中的面板和表单快速渲染结构  给登入名称加上readonly属性，设置为只读
+	b, 给昵称和邮箱设置验证（user_info.js）
+	c,初始化用户基本信息，发送ajax请求（别忘了引入baseAPI.js）
+	d,快速为表单赋值，layui-->内置模块-->表单-->表单赋值
+		<form class="layui-form" action="" lay-filter="formUserInfo">（(user_info.html）
+		 form.val('formUserInfo', res.data) (user_info.js)
+		所以要注意表单中的name尽量设置的与接口文档中的数据名一致
+	e, 接口文档要求提交的数据中要有id，但是表单中没有id
+		所以加一个隐藏域
+		 <!-- 隐藏域，因为id不想呈现，但是后端又要用到 -->
+                	<input type="hidden" name="id" value="">
+	f, 表单的重置，还原表单之前的样子，而type="reset"（user_info.html中的重置按钮）会清空表单，只需要再一次调用
+		初始化表单的函数即可
+		$('#btnReset').on('click', function(e) {
+   		 // 阻止表单的默认重置行为
+    		e.preventDefault()
+    		initUserInfo()
+  		})
+	g, 监听提交行为，发起提交的ajax请求，然后重新渲染表单
+		 data: $(this).serialize(),
+		 // 调用父页面中的方法，重新渲染用户的头像和用户的信息
+        		window.parent.getUserInfo()
+7 重置密码
+	注意：看user_pwd.js
+
+8 更换头像
+	关于cropper的使用
+	a  导入css
+    	    <link rel="stylesheet" href="../assets/lib/cropper/cropper.css">
+	b  导入js
+	  <script src="/assets/lib/layui/layui.all.js"></script>
+    	<script src="/assets/lib/jquery.js"></script>
+    	<script src="/assets/lib/cropper/Cropper.js"></script>
+    	<script src="/assets/lib/cropper/jquery-cropper.js"></script>
+    	<script src="/assets/js/baseAPI.js"></script>
+    	<script src="/assets/js/user/user_avatar.js"></script>
+	c 关于选择文件
+		 <input type="file" id="file" accept="image/png,image/jpeg" />
+		太丑了 ，所以display: none;
+		然后给漂亮的按钮绑定点击事件，点击它，就模拟点击丑文件按钮
+		// 为上传按钮绑定点击事件
+  		$('#btnChooseImage').on('click', function() {
+    			$('#file').click()
+  		})
+	d 实现裁剪区域图片的替换
+		// 为文件选择框绑定 change 事件
+  		$('#file').on('change', function(e) {
+    			// 获取用户选择的文件
+    			var filelist = e.target.files
+    			if (filelist.length === 0) {
+      				return layer.msg('请选择照片！')
+    			}
+
+    			// 1. 拿到用户选择的文件
+    			var file = e.target.files[0]
+    			// 2. 将文件，转化为路径
+    			var imgURL = URL.createObjectURL(file)
+    			// 3. 重新初始化裁剪区域
+    			$image
+      			.cropper('destroy') // 销毁旧的裁剪区域
+     			.attr('src', imgURL) // 重新设置图片路径
+     			.cropper(options) // 重新初始化裁剪区域
+  		})
+	e, 上传头像
+	f,  Github提交代码
+		.......
+		创建新分支 home
+	
+		

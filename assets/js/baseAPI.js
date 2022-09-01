@@ -16,6 +16,7 @@ $.ajaxPrefilter(function (options) {
   }
 
   // 全局统一挂载 complete 回调函数
+  //无论成功失败都会调用complete
   options.complete = function (res) {
     // console.log('执行了 complete 回调：')
     // console.log(res)

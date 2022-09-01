@@ -11,9 +11,8 @@ $(function(){
 
   
 
-  // 从layui中获取dorm对象
+  // 从layui中获取form对象
   var form = layui.form;
-  var layer = layui.layer;
   form.verify({
     //数组的两个值分别代表：[正则匹配、匹配不符时的提示文字]
     pwd: [
@@ -28,8 +27,9 @@ $(function(){
       }
     }
   });     
-  
- 
+  // 从layui中获取layer对象
+  var layer = layui.layer;
+  // 监听注册表单的提交事件
   $("#form_reg").on('submit',function(e){
     // 阻止默认的提交行为
     e.preventDefault();
@@ -47,6 +47,7 @@ $(function(){
     })
   })
 
+  // 监听登入行为
   $("#form_log").on('submit',function(e){
     // 阻止默认的提交行为
     e.preventDefault();
@@ -64,9 +65,9 @@ $(function(){
           layer.msg('登入成功');
           //将登入成功获得的token值，保存在localStorage中
           localStorage.setItem('token',res.token)
-          console.log(res.token)
+          console.log(res.token)//可以注释 location.href = '/index.html'，看到
           // 跳转到主页
-          // location.href = '/index.html'
+          location.href = '/index.html'
         }
       }
     )

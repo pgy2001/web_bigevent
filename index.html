@@ -47,7 +47,7 @@
               <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
               <ul class="layui-nav layui-nav-tree" lay-filter="test" lay-shrink="all">
             
-                <li class="layui-nav-item layui-bg-greem layui-this"><a href="home/dashboard.html" target="fm">
+                <li class="layui-nav-item layui-this"><a href="home/dashboard.html" target="fm">
                   <span class="iconfont icon-home"></span>首页</a></li>
 
                 <li class="layui-nav-item">
@@ -65,11 +65,11 @@
                 <li class="layui-nav-item">
                     <a href="javascript:;"><span class="iconfont icon-user"></span>个人中心</a>
                     <dl class="layui-nav-child">
-                      <dd><a href="javascript:;"><span class="iconfont icon-xxx"></span>
+                      <dd><a href="user/user_info.html" target="fm"><span class="iconfont icon-xxx"></span>
                         <i class="layui-icon layui-icon-app"></i>基本资料</a></dd>
-                      <dd><a href="javascript:;"><span class="iconfont icon-xxx"></span>
+                      <dd><a href="user/user_avatar.html" target="fm"><span class="iconfont icon-xxx"></span>
                         <i class="layui-icon layui-icon-app"></i>更换头像</a></dd>
-                      <dd><a href="javascript:;"><span class="iconfont icon-xxx"></span>
+                      <dd><a href="user/user_pwd.html" target="fm"><span class="iconfont icon-xxx"></span>
                         <i class="layui-icon layui-icon-app"></i>重置密码</a></dd>
                     </dl>
                   </li>
@@ -79,6 +79,7 @@
           
           <div class="layui-body">
             <!-- 内容主体区域 --> 
+            <!-- iframe里的src可以决定初始化的时候的页面，但可以通过a标签修改 -->
             <iframe src="home/dashboard.html" name="fm" frameborder="0"></iframe>
           </div>
           

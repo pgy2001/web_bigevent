@@ -22,7 +22,7 @@ $(function() {
           return layer.msg('获取用户信息失败！')
         }
         // console.log(res)
-        // 调用 form.val() 快速为表单赋值
+        // 调用 form.val() 快速为表单赋值,layui内置方法，用法看文档
         form.val('formUserInfo', res.data)
       }
     })
