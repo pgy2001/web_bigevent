@@ -17,7 +17,7 @@ $(function() {
   }
 
   // 为添加类别按钮绑定点击事件
-  var indexAdd = null
+  var indexAdd = null //关闭对应的弹出层时会用到
   $('#btnAddCate').on('click', function() {
     indexAdd = layer.open({
       type: 1,
@@ -28,6 +28,7 @@ $(function() {
   })
 
   // 通过代理的形式，为 form-add 表单绑定 submit 事件
+  //之所以使用代理的方式，是因为弹出层是动态生成的（点击之后才出现)所以将事件代理给表单的父亲。
   $('body').on('submit', '#form-add', function(e) {
     e.preventDefault()
     $.ajax({
@@ -57,12 +58,14 @@ $(function() {
       content: $('#dialog-edit').html()
     })
 
+    // 获取点击的按钮的id
     var id = $(this).attr('data-id')
     // 发起请求获取对应分类的数据
     $.ajax({
       method: 'GET',
       url: '/my/article/cates/' + id,
       success: function(res) {
+        // 调用了layui的快速填充表单的功能
         form.val('form-edit', res.data)
       }
     })

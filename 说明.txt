@@ -262,6 +262,360 @@ index.html:登入首页
 	e, 上传头像
 	f,  Github提交代码
 		.......
-		创建新分支 home
+		创建新分支 article
+
+9 文章类别
+	a,下载visiocode插件express,使用方法：
+		ctrl + shift + p 输入express 选择Express Host Current Workspace and Open in Browser
+		修改代码后，进入网页，右击选“重新加载框架”，即可
+	b, 表格来自layui
+		<colgroup>
+            		<col />
+            		<col />
+            		<col width="200" />
+          		</colgroup>
+		以上专门控制表格列的宽度，设置成了，前两列自适应，最后一列固定为200px
+	c,获取并使用模板引擎渲染内容
+		1 <!-- 导入 layui 的js -->
+    		   <script src="/assets/lib/layui/layui.all.js"></script>
+    		   <!-- 导入 jQuery -->
+    		   script src="/assets/lib/jquery.js"></script>
+    		   <!-- 导入 baseAPI -->
+    		  <script src="/assets/js/baseAPI.js"></script>
+    		  <!-- 导入模板引擎 -->
+    		  <script src="/assets/lib/template-web.js"></script>
+    		  <!-- 导入自己的 js -->
+    		  <script src="/assets/js/article/art_cate.js"></script>
+		2 发ajax请求拿到数据
+			 success: function(res) {
+        				var htmlStr = template('tpl-table', res)
+        				$('tbody').html(htmlStr)
+      			}
+			在成功的回调函数中，调用模板引擎，第一个参数是数据模板的
+			id,第二个参数是数据
+			$('tbody').html(htmlStr)，是将模板引擎返回的html格式的
+			渲染过的内容放进tbody里
+		3 定义表格数据模板
+			<!-- 表格数据的模板 -->
+    			<script type="text/html" id="tpl-table">
+     				 {{each data}}
+      			<tr>
+        			<td>{{$value.name}}</td>
+        			<td>{{$value.alias}}</td>
+        			<td>
+          				<button type="button" class="layui-btn layui-btn-xs btn-edit" data-id="{{$value.Id}}">编辑</button>
+          				<button type="button" class="layui-btn layui-btn-danger layui-btn-xs btn-delete" data-id="{{$value.Id}}">删除</button>
+        			</td>
+      			</tr>
+      				{{/each}}
+    			</script>
+			注意：type="text/html"  
+			           id="tpl-table"，id在js中调用引擎会用到
+			           之所以是each data ，是因为返回的数据定义的数组名是data
+		4 为添加按钮绑定点击弹出效果
+			使用layer.open实现弹出层效果，根据layui文档改造
+			 var indexAdd = null //关闭对应的弹出层时会用到
+ 			 $('#btnAddCate').on('click', function() {
+    			         	indexAdd =layer.open({
+      					type: 1,
+      					area: ['500px', '250px'],
+      					title: '添加文章分类',
+      					content: $('#dialog-add').html()
+   				 })
+  				})
+		注意：content: $('#dialog-add').html()，因为在content里写内容不太方便，
+			于是搞了个<script type="text/html" id="dialog-add">，将
+			它的内容给予content
+		5 实现添加文章分类的功能
+			// 通过代理的形式，为 form-add 表单绑定 submit 事件
+  			$('body').on('submit', '#form-add', function(e) {
+   			 	e.preventDefault()
+    				$.ajax({
+      					method: 'POST',
+      					url: '/my/article/addcates',
+      					data: $(this).serialize(),
+      					success: function(res) {
+        						if (res.status !== 0) {
+          							return layer.msg('新增分类失败！')
+        						}
+        					initArtCateList()
+        					layer.msg('新增分类成功！')
+        					// 根据索引，关闭对应的弹出层，具体看layui文档
+       					 layer.close(indexAdd)
+     					 }
+   				 })
+ 			 })
+		//之所以使用代理的方式，是因为弹出层是动态生成的（点击之后才出现）
+			所以将事件代理给表单的父亲。
+			$('body').on('submit', '#form-add', function(e) {。。。}
+		6修改删除差不多的步骤，自己看art_cate.js
+
+10 文章列表
+	注意查询和分页，其它的与文章类别相似
+	a, // 定义一个查询的参数对象，将来请求数据的时候，
+  	    // 需要将请求参数对象提交到服务器
+  		var q = {
+    			pagenum: 1, // 页码值，默认请求第一页的数据
+    			pagesize: 2, // 每页显示几条数据，默认每页显示2条
+    			cate_id: '', // 文章分类的 Id
+    			state: '' // 文章的发布状态
+  		}
+		里面的属性是根据接口文档来得
+	b 发请求获得数据，并渲染
+		// 获取文章列表数据的方法
+  		function initTable() {
+  		  $.ajax({
+  		    method: 'GET',
+  		    url: '/my/article/list',
+  		    data: q,
+  		    success: function(res) {
+  		      if (res.status !== 0) {
+  		        return layer.msg('获取文章列表失败！')
+  		      }
+  		      // 使用模板引擎渲染页面的数据
+  		      var htmlStr = template('tpl-table', res)
+  		      $('tbody').html(htmlStr)
+  		      // 调用渲染分页的方法
+  		      renderPage(res.total)
+  		    }
+  		  })
+  		}
+	c 做时间美化的过滤器
+		1在html文件的模板中
+		 <td>{{$value.pub_date|dataFormat}}</td>
+		2在js中写过滤器
+		 template.defaults.imports.dataFormat = function(date) {
+    			const dt = new Date(date)
+
+    			var y = dt.getFullYear()
+    			var m = padZero(dt.getMonth() + 1)
+    			var d = padZero(dt.getDate())
+
+    			var hh = padZero(dt.getHours())
+    			var mm = padZero(dt.getMinutes())
+    			var ss = padZero(dt.getSeconds())
+
+   			return y + '-' + m + '-' + d + ' ' + hh + ':' + mm + ':' + ss
+  		}
+
+  		// 定义补零的函数
+  		function padZero(n) {
+    			return n > 9 ? n : '0' + n
+  		}
+	d 根据数据来渲染下拉框中的选项
+		1， 选择框定义name
+		      <div class="layui-form-item layui-inline">
+            			<select name="cate_id"></select>
+          		       </div>
+		2,  分类可选项的模板结构
+    			<script type="text/html" id="tpl-cate">
+      			<option value="">所有分类</option>
+     			{{each data}}
+      			<option value="{{$value.Id}}">{{$value.name}}</option>
+     			 {{/each}}
+    			</script>
+		3, 初始化文章分类的方法
+ 			 function initCate() {
+    				$.ajax({
+      					method: 'GET',
+      					url: '/my/article/cates',
+      					success: function(res) {
+       						 if (res.status !== 0) {
+          							return layer.msg('获取分类数据失败！')
+        						}
+        					// 调用模板引擎渲染分类的可选项
+        					var htmlStr = template('tpl-cate', res)
+        					$('[name=cate_id]').html(htmlStr)
+        					// 通过 layui 重新渲染表单区域的UI结构
+        					form.render()
+      					}
+    				})
+  			}
+			之所以要重新渲染，重新渲染表单区域的UI结构
+			是因为在发ajax请求拿到类别数据之前，UI结构就已经加载完毕了
+			没有将数据渲染成功，所以要
+			重新渲染表单区域的UI结构（form.render()）
+	e,实现筛选功能
+		// 为筛选表单绑定 submit 事件
+  		$('#form-search').on('submit', function(e) {
+    			e.preventDefault()
+    			// 获取表单中选中项的值
+    			var cate_id = $('[name=cate_id]').val()
+   			var state = $('[name=state]').val()
+    			// 为查询参数对象 q 中对应的属性赋值
+    			q.cate_id = cate_id
+    			q.state = state
+    			// 根据最新的筛选条件，重新渲染表格的数据
+    			initTable()
+ 		})
+	f 分页
+		数据的条数/每页显示=页数
+		数据条数=获取文章列表数据时会给的一个总数条数total
+		所以在获取文章列表数据的函数中（initTable）
+		调用渲染分页的方法
+        		renderPage(res.total)
+
+		1，分页看layui文档
+			 <!-- 分页区域 -->
+        			<div id="pageBox"></div>
+
+			 // 定义渲染分页的方法
+  			function renderPage(total) {
+    				// 调用 laypage.render() 方法来渲染分页的结构
+   				 laypage.render({
+     					elem: 'pageBox', // 分页容器的 Id
+      					count: total, // 总数据条数
+      					limit: q.pagesize, // 每页显示几条数据
+      					curr: q.pagenum, // 设置默认被选中的分页
+      					layout: ['count', 'limit', 'prev', 'page', 'next', 'skip'],
+      					limits: [2, 3, 5, 10],
+      					// 分页发生切换的时候，触发 jump 回调
+      					// 触发 jump 回调的方式有两种：
+      					// 1. 点击页码的时候，会触发 jump 回调
+  					    // 2. 只要调用了 laypage.render() 方法，就会触发 jump 回调
+  					    jump: function(obj, first) {
+  					      // 可以通过 first 的值，来判断是通过哪种方式，触发的 jump 回调
+  					      // 如果 first 的值为 true，证明是laypage.render() 方法触发的
+  					      // 否则就是点击分页按钮触发的
+  					      console.log(first)
+  					      console.log(obj.curr)
+  					      // 把最新的页码值，赋值到 q 这个查询参数对象中
+  					      q.pagenum = obj.curr
+  					      // 把最新的条目数，赋值到 q 这个查询参数对象的 pagesize 属性中
+  					      q.pagesize = obj.limit
+  					      // 根据最新的 q 获取对应的数据列表，并渲染表格
+  					      // initTable()
+										//！可将变量转换成boolean类型，null、undefined和空字符串取反都为true，其余都为false。
+  					      if (!first) {
+  					        initTable()
+  					      }
+  					    }
+  					  })
+  					}
+	  g 删除功能
+				注意：1，要给按钮搞一个自定义属性，来记录id data-id="{{$value.Id}}
+							2， 注意列表内容是动态渲染的，所以只能通过代理的的形式，为删除按钮绑定点击事件处理函数
+							3， url: '/my/article/delete/' + id,动态拼接，看接口文档/my/article/delete/:id
+							4, 删除数据后，如果该页的数据已经删没了，虽然重新调用了initTable()函数，ajax发送的请求仍然是
+									请求该页的数据，所以我们要做判断，看是否该页的数据被删光了，如果删光了，就另页数-1
+									具体方法是获取删除按钮的个数
+  				  			var len = $('.btn-delete').length，注意这行代码要放在正式发起ajax请求删除数据之前，
+									如果len=1,在删一次，就没数据了，所以另显示的当前页-1
+				  // 通过代理的形式，为删除按钮绑定点击事件处理函数
+  				$('tbody').on('click', '.btn-delete', function() {
+  				  // 获取删除按钮的个数
+  				  var len = $('.btn-delete').length
+  				  console.log(len)
+  				  // 获取到文章的 id
+  				  var id = $(this).attr('data-id')
+  				  // 询问用户是否要删除数据
+  				  layer.confirm('确认删除?', { icon: 3, title: '提示' }, function(index) {
+  				    $.ajax({
+  				      method: 'GET',
+  				      url: '/my/article/delete/' + id,
+  				      success: function(res) {
+  				        if (res.status !== 0) {
+  				          return layer.msg('删除文章失败！')
+  				        }
+  				        layer.msg('删除文章成功！')
+  				        // 当数据删除完成后，需要判断当前这一页中，是否还有剩余的数据
+  				        // 如果没有剩余的数据了,则让页码值 -1 之后,
+  				        // 再重新调用 initTable 方法
+  				        // 4
+  				        if (len === 1) {
+  				          // 如果 len 的值等于1，证明删除完毕之后，页面上就没有任何数据了
+  				          // 页码值最小必须是 1
+  				          q.pagenum = q.pagenum === 1 ? 1 : q.pagenum - 1
+  				        }
+  				        initTable()
+  				      }
+  				    })
+
+  				    layer.close(index)
+  				  })
+  				})
+
+11 发布文章
+	a,使用富文本lib-->tinymce
+			 1, <!-- 为富文本编辑器外部的容器设置高度 -->
+            <div class="layui-input-block" style="height: 400px;">
+              <!-- 重要：将来这个 textarea 会被初始化为富文本编辑器 -->
+              <textarea name="content"></textarea>
+            </div>
+			 2, 导入js文件
+			  	<!-- 富文本 -->
+    			<script src="/assets/lib/tinymce/tinymce.min.js"></script>
+    			<script src="/assets/lib/tinymce/tinymce_setup.js"></script>
+			 3，调用
+			 		 // 初始化富文本编辑器
+  					initEditor()
+
+	b, 发布文章
+	注意：FormData 格式
+	基于 form 表单，快速创建一个 FormData 对象
+    var fd = new FormData($(this)[0])
+		// 注意：如果向服务器提交的是 FormData 格式的数据，
+    // 必须添加以下两个配置项
+    contentType: false,
+    processData: false,
+
+
+	 // 定义文章的发布状态
+  var art_state = '已发布'
+
+  // 为存为草稿按钮，绑定点击事件处理函数
+  $('#btnSave2').on('click', function() {
+    art_state = '草稿'
+  })
+
+  // 为表单绑定 submit 提交事件
+  $('#form-pub').on('submit', function(e) {
+    // 1. 阻止表单的默认提交行为
+    e.preventDefault()
+    // 2. 基于 form 表单，快速创建一个 FormData 对象
+    var fd = new FormData($(this)[0])
+    // 3. 将文章的发布状态，存到 fd 中
+    fd.append('state', art_state)
+    // 4. 将封面裁剪过后的图片，输出为一个文件对象
+    $image
+      .cropper('getCroppedCanvas', {
+        // 创建一个 Canvas 画布
+        width: 400,
+        height: 280
+      })
+      .toBlob(function(blob) {
+        // 将 Canvas 画布上的内容，转化为文件对象
+        // 得到文件对象后，进行后续的操作
+        // 5. 将文件对象，存储到 fd 中
+        fd.append('cover_img', blob)
+        // 6. 发起 ajax 数据请求
+        publishArticle(fd)
+      })
+  })
+
+  // 定义一个发布文章的方法
+  function publishArticle(fd) {
+    $.ajax({
+      method: 'POST',
+      url: '/my/article/add',
+      data: fd,
+      // 注意：如果向服务器提交的是 FormData 格式的数据，
+      // 必须添加以下两个配置项
+      contentType: false,
+      processData: false,
+      success: function(res) {
+        if (res.status !== 0) {
+          return layer.msg('发布文章失败！')
+        }
+        layer.msg('发布文章成功！')
+        // 发布文章成功后，跳转到文章列表页面
+        location.href = '/article/art_list.html'
+      }
+    })
+  }
+})
+		
+
+
 	
 		
